@@ -42,14 +42,6 @@ snapture_editing = {
 
 client = discord.Client()
 
-async def bg_status():
-    await client.wait_until_ready()
-    counter = 0
-    while not client.is_closed:
-        await client.change_presence(game=discord.Game(name=statuses[counter%len(statuses)]))
-        await asyncio.sleep(10)
-        counter += 1
-
 async def snapture_edit():
     await client.wait_until_ready()
     while not client.is_closed:
@@ -76,8 +68,6 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
-    await client.change_presence(game=discord.Game(name="initializing..."))
-
     for s in client.servers:
         all_servers[s.id] = s
         for c in s.channels:
@@ -92,6 +82,8 @@ async def on_ready():
     await client.send_message(c_output,"Dread it. Run from it. Destiny arrives all the same. And now, it's here. Or should I say, I am. [Thanosbot is online.]")
 
     print('ready')
+
+    await client.change_presence(game=discord.Game(name="initializing..."))
 
 @client.event
 async def on_message(message):
