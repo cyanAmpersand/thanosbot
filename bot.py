@@ -22,7 +22,7 @@ token_dir = "../"
 
 token = botfunctions.loadToken(token_dir + "thanosbot.tkn").strip()
 cmd_prefix = "!thanos "
-output_channel = "481196409870352384"
+output_channel = "395422229074018320"
 if testing:
     token = botfunctions.loadToken(token_dir + "testbot.tkn").strip()
     cmd_prefix = "!t_"
