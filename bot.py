@@ -121,6 +121,5 @@ async def on_message(message):
     if response is not None:
         await client.send_message(responseChannel,response)
 
-client.loop.create_task(bg_status())
 client.loop.create_task(snapture_edit())
 client.run(token)
