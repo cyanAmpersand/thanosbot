@@ -1,6 +1,6 @@
 import discord
 import botfunctions
-import sillystuff
+import snapture
 import time
 import asyncio
 import sys
@@ -104,12 +104,12 @@ async def on_message(message):
                         except FileNotFoundError:
                             snap_message = await client.send_file(responseChannel, rpi_dir + "snap.png",filename="snap.png")
                         print(snap_message.id)
-                        snapture_editing["edits"] = sillystuff.infinitysnap(message.server.members)
+                        snapture_editing["edits"] = snapture.infinitysnap(message.server.members)
                         snapture_editing["message"] = snap_message
                     else:
-                        await client.send_message(responseChannel,"Whoa there Thanos, there's a snapture already in progress.")
+                        await client.send_message(responseChannel,"There is a snapture already in progress.")
                 else:
-                    snapstring = sillystuff.infinitysnap(message.server.members)
+                    snapstring = snapture.infinitysnap(message.server.members)
                     msg_content = "```" + "\n".join(snapstring[:-1]) + "```" + snapstring[-1]
                     try:
                         await client.send_file(responseChannel,"snap.png",filename = "snap.png",content=msg_content)
