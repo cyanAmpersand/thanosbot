@@ -68,7 +68,7 @@ async def on_message(message):
         pass
     else:
         if message.content.startswith(cmd_prefix):
-            msgstr = message.content[len(cmd_prefix)::]
+            msgstr = message.content[len(cmd_prefix)::].lower()
             if msgstr == "help":
                 pass
             if msgstr == "did i die":
