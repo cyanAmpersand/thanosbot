@@ -5,6 +5,7 @@ import time
 import asyncio
 import sys
 import random
+import servertasks as st
 
 start_time = time.time()
 
@@ -29,37 +30,18 @@ if testing:
     statuses = ["chloe is tinkering"]
     output_channel = "395422229074018320"
 
-all_servers = {}
-all_channels = {}
-message_logs = []
-user_ids = {}
-emoji = {}
 snapture_editing = {
     "message":None,
+    "users":{},
     "edits":[],
     "content_new":""
 }
 
-client = discord.Client()
+server_tasks = {}
 
-async def snapture_edit():
-    await client.wait_until_ready()
-    while not client.is_closed:
-        if snapture_editing["message"] is not None:
-            print("snapping...")
-            snapture_editing["content_new"] = snapture_editing["message"].content
-            print(snapture_editing["edits"])
-            for e in snapture_editing["edits"][:-1]:
-                print(e)
-                snapture_editing["content_new"] += "\n" + e
-                await client.edit_message(snapture_editing["message"],"```" + snapture_editing["content_new"] + "```")
-                await asyncio.sleep(3*random.random())
-            await client.edit_message(snapture_editing["message"], "```" + snapture_editing["content_new"] + "```" + snapture_editing["edits"][-1])
-            print("snap done")
-            snapture_editing["message"] = None
-            snapture_editing["edits"] = []
-            snapture_editing["content_new"] = ""
-        await asyncio.sleep(1)
+server_info = {}
+
+client = discord.Client()
 
 @client.event
 async def on_ready():
@@ -69,14 +51,8 @@ async def on_ready():
     print('------')
 
     for s in client.servers:
-        all_servers[s.id] = s
-        for c in s.channels:
-            all_channels[c.id] = c
-        for m in s.members:
-            user_ids[m.id] = m.name
-
-    for m in user_ids:
-        print(m + " " + user_ids[m])
+        print(s.id + ", " + s.name)
+        server_tasks[s.id] = st.ServerTask(client)
 
     c_output = client.get_channel(output_channel)
     await client.send_message(c_output,"Dread it. Run from it. Destiny arrives all the same. And now, it's here. Or should I say, I am. [Thanosbot is online.]")
@@ -95,29 +71,41 @@ async def on_message(message):
             msgstr = message.content[len(cmd_prefix)::]
             if msgstr == "help":
                 pass
+            if msgstr == "did i die":
+                if server_tasks[message.server.id].snapinfo is None:
+                    await client.send_message(message.channel,"no snapture yet")
+                elif server_tasks[message.server.id].snap_in_progress:
+                    await client.send_message(message.channel, "There is a snapture in progress. Channel: " + message.channel.name)
+                elif server_tasks[message.server.id].snapinfo["users"][message.author.id]["alive"]:
+                    await client.send_message(message.channel, "no")
+                elif not server_tasks[message.server.id].snapinfo["users"][message.author.id]["alive"]:
+                    await client.send_message(message.channel, "yes")
+                else:
+                    await client.send_message(message.channel, "oopsie")
             if msgstr.startswith("snapture"):
-                print("snap called")
-                if "slow" in msgstr:
-                    if snapture_editing["message"] is None:
+                snapresult = snapture.infinitysnap(message.server.members)
+                snapture_editing["edits"] = snapture.snapstring(snapresult)
+                snapture_editing["users"] = snapresult
+                server_tasks[message.server.id].set_snap_info(snapture_editing)
+                if not server_tasks[message.server.id].snap_in_progress:
+                    if "slow" in msgstr:
                         try:
                             snap_message = await client.send_file(responseChannel, "snap.png", filename="snap.png")
                         except FileNotFoundError:
                             snap_message = await client.send_file(responseChannel, rpi_dir + "snap.png",filename="snap.png")
-                        print(snap_message.id)
-                        snapture_editing["edits"] = snapture.infinitysnap(message.server.members)
                         snapture_editing["message"] = snap_message
+                        await server_tasks[message.server.id].snapture_edit(snapture_editing.copy())
                     else:
-                        await client.send_message(responseChannel,"There is a snapture already in progress.")
+                        snaplines = server_tasks[message.server.id].snapinfo["edits"]
+                        msg_content = "```" + "\n".join(snaplines[:-1]) + "```" + snaplines[-1]
+                        try:
+                            await client.send_file(responseChannel,"snap.png",filename = "snap.png",content=msg_content)
+                        except FileNotFoundError:
+                            await client.send_file(responseChannel, rpi_dir + "snap.png", filename="snap.png", content=msg_content)
                 else:
-                    snapstring = snapture.infinitysnap(message.server.members)
-                    msg_content = "```" + "\n".join(snapstring[:-1]) + "```" + snapstring[-1]
-                    try:
-                        await client.send_file(responseChannel,"snap.png",filename = "snap.png",content=msg_content)
-                    except FileNotFoundError:
-                        await client.send_file(responseChannel, rpi_dir + "snap.png", filename="snap.png", content=msg_content)
+                    await client.send_message(responseChannel, "There is a snapture already in progress. Channel: " + message.channel.name)
 
     if response is not None:
         await client.send_message(responseChannel,response)
 
-client.loop.create_task(snapture_edit())
 client.run(token)
