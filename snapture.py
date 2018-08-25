@@ -18,15 +18,16 @@ def infinitysnap(members):
     }
     total_users = 0
     for m in members:
-        user_ids.append(m.id)
-        snapture_info[m.id] = base_status.copy()
-        snapture_info[m.id]["member_obj"] = m
-        total_users += 1
+        if m.id != "480817419963858944":
+            user_ids.append(m.id)
+            snapture_info[m.id] = base_status.copy()
+            snapture_info[m.id]["member_obj"] = m
+            total_users += 1
     random.shuffle(user_ids)
     for m in user_ids:
         if n_dead_members(snapture_info) < total_users/2:
             snapture_info[m]["alive"] = False
-    if random.random() > 0.5:
+    if random.random() > 0.5 and len(user_ids)%2 != 0:
         snapture_info[user_ids[0]]["alive"] = not snapture_info[user_ids[0]]["alive"]
     return snapture_info
 
